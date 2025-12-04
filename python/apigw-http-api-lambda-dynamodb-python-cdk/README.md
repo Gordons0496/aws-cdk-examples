@@ -8,6 +8,24 @@ Creates an [AWS Lambda](https://aws.amazon.com/lambda/) function writing to [Ama
 
 ![architecture](docs/architecture.png)
 
+## Security - AWS WAF Protection
+
+This stack implements AWS Well-Architected Framework best practice **REL05-BP02: Throttle requests** using AWS WAF for IP-based rate limiting.
+
+### WAF Configuration
+- **Rate Limit:** 2000 requests per 5 minutes per IP address
+- **Action:** Block requests exceeding the limit
+- **Monitoring:** CloudWatch metrics and alarms enabled
+
+### Protection Benefits
+- Prevents DDoS attacks from single IP addresses
+- Blocks malicious flooding attempts
+- Protects backend resources from abuse
+- Allows legitimate traffic while blocking excessive requests
+
+### Monitoring
+A CloudWatch alarm triggers when more than 100 requests are blocked in a single evaluation period, indicating potential attack or misconfiguration.
+
 ## Setup
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
