@@ -8,6 +8,39 @@ Creates an [AWS Lambda](https://aws.amazon.com/lambda/) function writing to [Ama
 
 ![architecture](docs/architecture.png)
 
+## API Authentication and Rate Limiting
+
+This stack implements AWS Well-Architected Framework best practice **REL05-BP02: Throttle requests** using API Gateway usage plans and API keys for per-client rate limiting.
+
+### Usage Plan Configuration
+- **Rate Limit:** 10 requests/second per API key
+- **Burst Limit:** 20 requests per API key
+- **Daily Quota:** 10,000 requests per API key
+
+### API Key Requirement
+All API requests must include a valid API key in the `x-api-key` header. Without a valid key, requests return `403 Forbidden`.
+
+### Retrieving API Key Value
+After deployment, retrieve the API key value:
+1. Note the API Key ID from the stack outputs
+2. Navigate to AWS API Gateway console → API Keys
+3. Click "Show" to reveal the API key value
+
+### Using the API
+Include the API key in all requests:
+```bash
+curl -X POST https://your-api-url/prod \
+  -H "x-api-key: your-api-key-value" \
+  -H "Content-Type: application/json" \
+  -d '{"year":"2023","title":"test","id":"123"}'
+```
+
+### Benefits
+- Per-client rate limiting prevents individual consumers from exhausting resources
+- Quota management enables fair usage across multiple API consumers
+- API key authentication provides basic access control
+- High-volume consumers can be identified and managed separately
+
 ## Setup
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
@@ -70,7 +103,7 @@ $ cdk deploy --profile test
 ```
 
 ## After Deploy
-Navigate to AWS API Gateway console and test the API with below sample data 
+Navigate to AWS API Gateway console and test the API with below sample data (include your API key):
 ```json
 {
     "year":"2023", 
