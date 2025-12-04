@@ -8,6 +8,23 @@ Creates an [AWS Lambda](https://aws.amazon.com/lambda/) function writing to [Ama
 
 ![architecture](docs/architecture.png)
 
+## Lambda Concurrency Management
+
+This stack implements AWS Well-Architected Framework best practice **REL05-BP02: Throttle requests** using Lambda reserved concurrency.
+
+### Configuration
+- **Reserved Concurrency:** 50 concurrent executions
+- **Monitoring:** CloudWatch alarm for throttled invocations (threshold: 10)
+
+### Benefits
+- Prevents this function from consuming all account-level Lambda concurrency
+- Protects other Lambda functions in the same account and region
+- Acts as a throttling mechanism during traffic spikes
+- Ensures predictable resource allocation
+
+### Monitoring
+The CloudWatch alarm triggers when the function is throttled more than 10 times in an evaluation period, indicating capacity limits are being reached.
+
 ## Setup
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
