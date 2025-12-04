@@ -11,6 +11,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_logs as logs,
     Duration,
+    CfnOutput,
 )
 from constructs import Construct
 
@@ -99,10 +100,14 @@ class ApigwHttpApiLambdaDynamodbPythonCdkStack(Stack):
         )
 
         # Create API Gateway
-        apigw_.LambdaRestApi(
+        api = apigw_.LambdaRestApi(
             self,
             "Endpoint",
             handler=api_hanlder,
+            api_key_source_type=apigw_.ApiKeySourceType.HEADER,
+            default_method_options=apigw_.MethodOptions(
+                api_key_required=True
+            ),
             deploy_options=apigw_.StageOptions(
                 tracing_enabled=True,
                 access_log_destination=apigw_.LogGroupLogDestination(api_log_group),
@@ -118,4 +123,42 @@ class ApigwHttpApiLambdaDynamodbPythonCdkStack(Stack):
                     user=True,
                 ),
             ),
+        )
+
+        # Create usage plan
+        usage_plan = apigw_.UsagePlan(
+            self,
+            "ApiUsagePlan",
+            name="StandardUsagePlan",
+            throttle=apigw_.ThrottleSettings(
+                rate_limit=10,
+                burst_limit=20
+            ),
+            quota=apigw_.QuotaSettings(
+                limit=10000,
+                period=apigw_.Period.DAY
+            )
+        )
+
+        # Associate usage plan with API stage
+        usage_plan.add_api_stage(
+            stage=api.deployment_stage
+        )
+
+        # Create API key
+        api_key = apigw_.ApiKey(
+            self,
+            "ApiKey",
+            api_key_name="DefaultApiKey"
+        )
+
+        # Associate API key with usage plan
+        usage_plan.add_api_key(api_key)
+
+        # Output API key ID
+        CfnOutput(
+            self,
+            "ApiKeyId",
+            value=api_key.key_id,
+            description="API Key ID - retrieve value from AWS Console"
         )
