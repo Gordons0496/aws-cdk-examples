@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_iam as iam,
     aws_logs as logs,
+    aws_cloudwatch as cloudwatch,
     Duration,
 )
 from constructs import Construct
@@ -85,6 +86,7 @@ class ApigwHttpApiLambdaDynamodbPythonCdkStack(Stack):
             timeout=Duration.minutes(5),
             tracing=lambda_.Tracing.ACTIVE,
             log_retention=logs.RetentionDays.ONE_YEAR,
+            reserved_concurrent_executions=50,
         )
 
         # grant permission to lambda to write to demo table
@@ -96,6 +98,16 @@ class ApigwHttpApiLambdaDynamodbPythonCdkStack(Stack):
             self,
             "ApiGatewayAccessLogs",
             retention=logs.RetentionDays.ONE_YEAR,
+        )
+
+        # CloudWatch alarm for Lambda throttles
+        cloudwatch.Alarm(
+            self,
+            "LambdaThrottleAlarm",
+            metric=api_hanlder.metric_throttles(),
+            threshold=10,
+            evaluation_periods=1,
+            alarm_description="Alert when Lambda function is throttled"
         )
 
         # Create API Gateway
