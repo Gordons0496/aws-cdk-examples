@@ -105,6 +105,8 @@ class ApigwHttpApiLambdaDynamodbPythonCdkStack(Stack):
             handler=api_hanlder,
             deploy_options=apigw_.StageOptions(
                 tracing_enabled=True,
+                throttling_burst_limit=100,
+                throttling_rate_limit=50,
                 access_log_destination=apigw_.LogGroupLogDestination(api_log_group),
                 access_log_format=apigw_.AccessLogFormat.json_with_standard_fields(
                     caller=True,
